@@ -42,6 +42,74 @@ void Cpu::Write(u16 addr, u8 datacc)
     bus->Write(addr,datacc);
 }
 
+// Interrupt requests are a complex operation and only happen if the
+// "disable interrupt" flag is 0. IRQs can happen at any time, but
+// you dont want them to be destructive to the operation of the running 
+// program. Therefore the current instruction is allowed to finish
+// (which I facilitate by doing the whole thing when cycles == 0) and 
+// then the current program counter is stored on the stack. Then the
+// current status register is stored on the stack. When the routine
+// that services the interrupt has finished, the status register
+// and program counter can be restored to how they where before it 
+// occurred. This is impemented by the "RTI" instruction. Once the IRQ
+// has happened, in a similar way to a reset, a programmable address
+// is read form hard coded location 0xFFFE, which is subsequently
+// set to the program counter.
+void Cpu::IRQ()
+{
+	// If interrupts are allowed
+	if (GetFlag(I) == 0)
+	{
+		// Push the program counter to the stack. It's 16-bits dont
+		// forget so that takes two pushes
+		Write(0x0100 + sp, (ip >> 8) & 0x00FF);
+		sp--;
+		Write(0x0100 + sp, ip & 0x00FF);
+		sp--;
+
+		// Then Push the status register to the stack
+		SetFlag(B, 0);
+		SetFlag(U, 1);
+		SetFlag(I, 1);
+		Write(0x0100 + sp, status);
+		sp--;
+
+		// Read new program counter location from fixed address
+		addr_abs = 0xFFFE;
+		uint16_t lo = Read(addr_abs + 0);
+		uint16_t hi = Read(addr_abs + 1);
+		ip = (hi << 8) | lo;
+
+		// IRQs take time
+		cycles = 7;
+	}
+}
+
+
+// A Non-Maskable Interrupt cannot be ignored. It behaves in exactly the
+// same way as a regular IRQ, but reads the new program counter address
+// form location 0xFFFA.
+void Cpu::NMI()
+{
+	Write(0x0100 + sp, (ip >> 8) & 0x00FF);
+	sp--;
+	Write(0x0100 + sp, ip & 0x00FF);
+	sp--;
+
+	SetFlag(B, 0);
+	SetFlag(U, 1);
+	SetFlag(I, 1);
+	Write(0x0100 + sp, status);
+	sp--;
+
+	addr_abs = 0xFFFA;
+	uint16_t lo = Read(addr_abs + 0);
+	uint16_t hi = Read(addr_abs + 1);
+	ip = (hi << 8) | lo;
+
+	cycles = 8;
+}
+
 void Cpu::Reset()
 {
     // set address to known location
@@ -172,7 +240,7 @@ u8 Cpu::REL()
 {
 	addr_rel = Read(ip);
 	ip++;
-	if (addr_rel & 0x80)
+	if (addr_rel & 0x80) // negative jmp
 		addr_rel |= 0xFF00;
 	return 0;
 }
@@ -1174,4 +1242,13 @@ u8 Cpu::TYA()
 u8 Cpu::XXX()
 {
 	return 0;
+}
+
+///////////////////////
+// helper functions //
+///////////////////////
+
+bool Cpu::Complete()
+{
+	return cycles == 0;
 }
