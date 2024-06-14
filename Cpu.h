@@ -35,7 +35,6 @@ class Cpu
         void Clock(); void Reset(); void IRQ(); void NMI();
         bool Complete();
 
-
     private:
         Bus *bus = nullptr;
         u8 fetched = 0x00; u16 tmp = 0x0000;
@@ -77,6 +76,5 @@ class Cpu
             u8 cycles = 0;
 	    };
 
-	std::vector<INSTRUCTION> lookup;
-        
+	std::vector<INSTRUCTION> lookup; 
 };
