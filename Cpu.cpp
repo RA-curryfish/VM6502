@@ -129,12 +129,14 @@ void Cpu::Reset()
     cycles = 8;
 }
 
-void Cpu::Clock()
+// return true if brk (?) is called
+bool Cpu::Clock()
 {
     if (cycles==0)
     {
         opcode = Read(ip);
         ip++;
+		if(opcode == 0x00) end = true;
         cycles = lookup[opcode].cycles;
         SetFlag(U, true); // always?
         
@@ -148,6 +150,7 @@ void Cpu::Clock()
 
     clock_count++; // time goes up
     cycles--; // cycles remaining goes down, until 0 which fetches the next instruction
+	return end;
 }
 
 // get the value of a specific bit of the status register

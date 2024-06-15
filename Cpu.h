@@ -32,11 +32,11 @@ class Cpu
         };
 
         // external signals to cpu
-        void Clock(); void Reset(); void IRQ(); void NMI();
+        bool Clock(); void Reset(); void IRQ(); void NMI();
         bool Complete();
 
     private:
-        Bus *bus = nullptr;
+        Bus *bus = nullptr; bool end;
         u8 fetched = 0x00; u16 tmp = 0x0000;
         u16 addr_abs = 0x0000; u16 addr_rel = 0x00;
         u8 opcode = 0x00; u8 cycles = 0;

@@ -15,8 +15,8 @@ void SetROMLoc(Bus *bus, u8 lo, u8 hi)
     bus->memory[GetMemoryLoc(0xFD,0xFF)] = hi;
 }
 
-// todo: convert assembly to hex code
-vector<string> GetHexCode(vector<string> code)
+// todo: code to assemble
+vector<string> GetHexDump(vector<string> code)
 {
 
 }
@@ -24,20 +24,13 @@ vector<string> GetHexCode(vector<string> code)
 void InjectROM(Bus *bus, vector<string> code, u8 lo, u8 hi)
 {
     // todo: use hex code here
-    // vector<string> hexCode = GetHexCode(code);
-    // for(auto inst: hexCode)
-    // {
-    //      vector<u8> hexy = inst.split(" ");
-    //      for(auto byt: hexy)
-    //      {
-    //          if(lo != 0xFF)
-    //              bus->memory[GetMemoryLoc(++lo,hi)] = byt
-    //          else
-    //              bus->memory[GetMemoryLoc(++lo,++hi)] = byt
-    // }
-
-    bus->memory[GetMemoryLoc(lo,hi)] = 0xA9;
-    bus->memory[GetMemoryLoc(lo+1,hi)] = 0x02;
+    vector<u8> hexDump = {0xA9, 0x02, 0x69, 0x03};//GetHexDump(code);
+    for(auto inst: hexDump)
+    {
+        bus->memory[GetMemoryLoc(lo,hi)] = inst;
+        if(lo == 0xFF)  hi++;
+        lo++;
+    }
 }
 
 int main()
@@ -49,7 +42,7 @@ int main()
     SetROMLoc(&myBus, 0x00, 0xAA);
     
     // set up the memory for actual code
-    // LDA 0x02  ====> A9 0x02
+    // LDA 0x02 ====> A9 0x02
     // 0xAA00: A9
     // 0xAA01: 02
     vector<string> code = {"LDA 0x02", "ADC 0x03"};
@@ -57,9 +50,11 @@ int main()
 
     myCpu.ConnectBus(&myBus);
     myCpu.Reset();
-    int i=100;
-    while(i-->0)
-        myCpu.Clock();
+    bool end=false;
+    do
+    {
+        end = myCpu.Clock(); 
+    } while (!end);
 
     printf("Accumulator: %04x\n", myCpu.acc);
 
