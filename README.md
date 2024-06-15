@@ -1,4 +1,4 @@
-# MOS 6502 Emmulator
+# MOS 6502 Emulator
 
 This is a basic 6502 emulator I made referencing this repository: https://github.com/OneLoneCoder/olcNES/tree/master
 
