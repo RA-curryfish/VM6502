@@ -11,8 +11,8 @@ u16 GetMemoryLoc(u8 lo, u8 hi)
 
 void SetROMLoc(Bus *bus, u8 lo, u8 hi)
 {
-    bus->memory[GetMemoryLoc(0xFC,0xFF)] = lo;
-    bus->memory[GetMemoryLoc(0xFD,0xFF)] = hi;
+    bus->cpuRAM[GetMemoryLoc(0xFC,0xFF)] = lo;
+    bus->cpuRAM[GetMemoryLoc(0xFD,0xFF)] = hi;
 }
 
 // todo: code to assemble
@@ -27,7 +27,7 @@ void InjectROM(Bus *bus, vector<string> code, u8 lo, u8 hi)
     vector<u8> hexDump = {0xA9, 0x02, 0x69, 0x03};//GetHexDump(code);
     for(auto inst: hexDump)
     {
-        bus->memory[GetMemoryLoc(lo,hi)] = inst;
+        bus->cpuRAM[GetMemoryLoc(lo,hi)] = inst;
         if(lo == 0xFF)  hi++;
         lo++;
     }

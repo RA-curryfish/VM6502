@@ -34,12 +34,12 @@ Cpu::~Cpu()
 
 u8 Cpu::Read(u16 addr)
 {
-    return bus->Read(addr,false);
+    return bus->CpuRead(addr,false);
 }
 
 void Cpu::Write(u16 addr, u8 datacc)
 {
-    bus->Write(addr,datacc);
+    bus->CpuWrite(addr,datacc);
 }
 
 // Interrupt requests are a complex operation and only happen if the
